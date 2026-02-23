@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-House POS System (Separate Payment)</title>
+    <title>Multi-House POS System (Bank & QR Image)</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -20,6 +20,8 @@
         .main-content { margin-right: 35%; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         
+        .bank-details-card { background: #f8f9fa; border-left: 5px solid #0d6efd; border-radius: 8px; }
+
         @media (max-width: 768px) {
             .sidebar { position: static; width: 100%; height: auto; }
             .main-content { margin-right: 0; }
@@ -92,10 +94,10 @@
                 </div>
 
                 <div class="col-md-4 sidebar p-4 d-flex flex-column shadow">
-                    <h5 class="mb-3 border-bottom pb-2 fw-bold text-primary"><i class="fas fa-list-ul me-2"></i>รายการสั่งซื้อ</h5>
+                    <h5 class="mb-3 border-bottom pb-2 fw-bold text-primary"><i class="fas fa-shopping-basket me-2"></i>ออเดอร์ปัจจุบัน</h5>
                     
-                    <div class="flex-grow-1 overflow-auto">
-                        <table class="table table-borderless align-middle">
+                    <div class="flex-grow-1 overflow-auto mb-3">
+                        <table class="table table-borderless align-middle mb-0">
                             <tr v-for="(item, index) in cart" :key="index" class="border-bottom">
                                 <td>
                                     <div class="fw-bold">{{ item.name }}</div>
@@ -113,18 +115,57 @@
                         </table>
                         <div v-if="cart.length === 0" class="text-center text-muted py-5">
                             <i class="fas fa-cart-arrow-down fa-3x mb-3 opacity-25"></i>
-                            <p>เลือกเมนูทางฝั่งซ้าย</p>
+                            <p>ยังไม่มีรายการอาหาร</p>
                         </div>
                     </div>
 
-                    <div class="bg-light p-3 rounded-3 mt-3 border">
-                        <div class="d-flex justify-content-between fs-5 fw-bold mb-3">
+                    <div class="bg-white p-3 rounded-3 shadow-sm border mb-3">
+                        <h6 class="fw-bold fs-6"><i class="fas fa-user-tag me-2"></i>ข้อมูลลูกค้า</h6>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <input type="text" v-model="queueNumber" class="form-control form-control-sm border-primary" placeholder="คิวที่ *" required>
+                            </div>
+                            <div class="col-8">
+                                <input type="text" v-model="customerName" class="form-control form-control-sm" placeholder="ชื่อลูกค้า (ไม่บังคับ)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-3 shadow-sm border mb-3">
+                        <h6 class="fw-bold fs-6"><i class="fas fa-ticket-alt me-2"></i>รหัสโปรโมชั่น</h6>
+                        <div class="input-group input-group-sm">
+                            <input type="text" v-model="promoCodeInput" class="form-control text-uppercase" placeholder="กรอกรหัสส่วนลด" :disabled="appliedPromo !== null">
+                            <button v-if="!appliedPromo" class="btn btn-outline-success" @click="applyPromo">ใช้งาน</button>
+                            <button v-else class="btn btn-danger" @click="removePromo">ยกเลิก</button>
+                        </div>
+                        <div v-if="promoMessage" :class="{'text-success': appliedPromo, 'text-danger': !appliedPromo}" class="small mt-2 fw-bold">
+                            <i :class="appliedPromo ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i> {{ promoMessage }}
+                        </div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 border">
+                        <div class="d-flex justify-content-between mb-2 text-muted" v-if="discountAmount > 0">
+                            <span>รวมเป็นเงิน</span>
+                            <span>{{ subTotal }} ฿</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 text-success fw-bold" v-if="discountAmount > 0">
+                            <span><i class="fas fa-tags me-1"></i>ส่วนลดโปรโมชั่น</span>
+                            <span>-{{ discountAmount }} ฿</span>
+                        </div>
+                        <div class="d-flex justify-content-between fs-5 fw-bold mb-3 border-top pt-2">
                             <span>ยอดรวมสุทธิ</span>
                             <span class="text-primary">{{ totalPrice }} ฿</span>
                         </div>
-                        <button class="btn btn-success w-100 py-3 fs-5 shadow-sm fw-bold" :disabled="cart.length === 0" @click="showPaymentModal">
-                            <i class="fas fa-qrcode me-2"></i> ชำระเงิน
+
+                        <button class="btn w-100 py-3 fs-5 shadow-sm fw-bold" 
+                                :class="(cart.length > 0 && queueNumber) ? 'btn-success' : 'btn-secondary'"
+                                :disabled="cart.length === 0 || !queueNumber" 
+                                @click="showPaymentModal">
+                            <i class="fas fa-money-bill-wave me-2"></i> ชำระเงิน
                         </button>
+                        <div v-if="cart.length > 0 && !queueNumber" class="text-danger small text-center mt-2">
+                            * กรุณาระบุหมายเลขคิวก่อนชำระเงิน
+                        </div>
                     </div>
                 </div>
             </div>
@@ -135,32 +176,39 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="fas fa-coins me-2"></i>สแกนจ่ายเงิน (PromptPay)</h5>
+                    <h5 class="modal-title"><i class="fas fa-university me-2"></i>โอนเงินชำระค่าอาหาร</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center p-4">
-                    <h6 class="text-muted mb-1">ยอดชำระเงิน</h6>
-                    <h1 class="text-dark display-4 fw-bold mb-3">{{ totalPrice }} <span class="fs-5">บาท</span></h1>
+                    <div class="mb-3">
+                        <span class="badge bg-warning text-dark fs-6 me-2">คิวที่ {{ queueNumber }}</span>
+                        <span v-if="customerName" class="fw-bold text-muted">คุณ {{ customerName }}</span>
+                    </div>
+
+                    <h6 class="text-muted mb-1">ยอดที่ต้องชำระ</h6>
+                    <div v-if="discountAmount > 0" class="text-muted text-decoration-line-through fs-5">
+                        {{ subTotal }} บาท
+                    </div>
+                    <h1 class="text-dark display-3 fw-bold mb-4">{{ totalPrice }} <span class="fs-5">บาท</span></h1>
                     
-                    <div class="card p-3 d-inline-block mb-3 bg-white shadow-sm border-0">
-                        <img :src="qrCodeUrl" class="img-fluid" style="width: 250px; height: 250px;">
+                    <div v-if="currentQrImage" class="mb-4">
+                        <div class="card p-2 d-inline-block bg-white shadow-sm border-0 rounded-4">
+                            <img :src="currentQrImage" class="img-fluid rounded" style="width: 250px; height: 250px; object-fit: contain;" alt="QR Code สแกนจ่าย">
+                        </div>
+                        <p class="text-muted small mt-2"><i class="fas fa-camera me-1"></i> สแกน QR Code ด้านบนเพื่อชำระเงิน</p>
                     </div>
                     
-                    <div class="alert alert-light border small text-start mx-auto" style="max-width: 300px;">
-                        <div class="d-flex justify-content-between">
-                            <span>ร้านค้า:</span>
-                            <span class="fw-bold">{{ configName }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>เบอร์พร้อมเพย์:</span>
-                            <span class="fw-bold text-primary">{{ currentPromptPay }}</span>
-                        </div>
+                    <div class="bank-details-card p-3 text-start mx-auto shadow-sm" style="max-width: 350px;">
+                        <p class="mb-1 text-muted small"><i class="fas fa-info-circle me-1"></i>โอนเข้าบัญชี:</p>
+                        <h5 class="fw-bold text-primary mb-2">{{ currentBankDetails.bankName }}</h5>
+                        <p class="mb-1 fs-5">เลขบัญชี: <span class="fw-bold text-dark">{{ currentBankDetails.accNo }}</span></p>
+                        <p class="mb-0">ชื่อบัญชี: <span class="fw-bold">{{ currentBankDetails.accName }}</span></p>
                     </div>
                 </div>
-                <div class="modal-footer justify-content-center">
+                <div class="modal-footer justify-content-center bg-light">
                     <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="button" class="btn btn-success px-4" @click="confirmPayment">
-                        <i class="fas fa-check-circle me-1"></i> ได้รับเงินแล้ว
+                    <button type="button" class="btn btn-success px-4 fw-bold" @click="confirmPayment">
+                        <i class="fas fa-check-circle me-1"></i> ยืนยันว่าโอนเงินแล้ว
                     </button>
                 </div>
             </div>
@@ -180,79 +228,136 @@
     const houseConfigs = {
         "1": {
             name: "ตั้งหวังเจ๊ง",
-            promptpayId: "0811111111", // 🟢 ใส่เบอร์พร้อมเพย์จริงของบ้าน 1
+            bankDetails: {
+                bankName: "ธนาคารกสิกรไทย (KBank)",
+                accNo: "111-1-11111-1",
+                accName: "นาย ตั้งหวัง เจ๊ง"
+            },
+            // 👇 ใส่ลิงก์รูป QR Code จาก Google Drive ตรงนี้ (แปลงลิงก์ตามวิธีด้านบนแล้ว)
+            qrImage: "https://drive.google.com/file/d/1blYpuwXAAINvT17JF0GelkKp-m2kG8Yr/view?usp=drive_link", 
             scriptUrl: "https://script.google.com/macros/s/xxxxxx_SHEET_1_xxxxxx/exec", 
             menu: [
                 { id: 101, name: 'เอสเพรสโซ่', price: 40, image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' },
                 { id: 102, name: 'ลาเต้เย็น', price: 50, image: 'https://images.unsplash.com/photo-1461023058943-716d192f2279?w=300' }
-            ]
+            ],
+            promoGroups: [] 
         },
-        "2": {
+
+        "2": { 
             name: "Summer splash",
-            promptpayId: "0822222222", // 🟢 ใส่เบอร์พร้อมเพย์จริงของบ้าน 2
-            scriptUrl: "https://script.google.com/macros/s/xxxxxx_SHEET_2_xxxxxx/exec", 
+            bankDetails: {
+                bankName: "ธนาคารกสิกรไทย (KBank)",
+                accNo: "111-1-11111-1",
+                accName: "นาย ตั้งหวัง เจ๊ง"
+            }, 
+            qrImage: "",
+            scriptUrl: "", 
             menu: [
-                { id: 201, name: 'ข้าวมันไก่ต้ม', price: 50, image: 'https://images.unsplash.com/photo-1606850780554-b55eaac845ce?w=300' }
-            ]
+                { id: 201, name: 'ข้าวมันไก่ต้ม', price: 50, image: '' }
+
+            ] 
         },
-        "3": {
-            name: "Tales of Tanabata",
-            promptpayId: "0811111111", // 🟢 ใส่เบอร์พร้อมเพย์จริงของบ้าน 1
-            scriptUrl: "https://script.google.com/macros/s/xxxxxx_SHEET_1_xxxxxx/exec", 
+        
+        "3": { 
+            name: "Tales of Tanabata", 
+            bankDetails: {
+                bankName: "ธนาคารกสิกรไทย (KBank)",
+                accNo: "111-1-11111-1",
+                accName: "นาย ตั้งหวัง เจ๊ง"
+            },
+            qrImage: "", 
+            scriptUrl: "", 
             menu: [
-                { id: 301, name: 'เอสเพรสโซ่', price: 40, image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' },
-                { id: 302, name: 'ลาเต้เย็น', price: 50, image: 'https://images.unsplash.com/photo-1461023058943-716d192f2279?w=300' }
-            ]
+                { id: 301, name: 'เอสเพรสโซ่', price: 40, image: '' }
+
+            ] 
         },
-        "4": {
-            name: "Eggy Egg Eggg",
-            promptpayId: "0811111111", // 🟢 ใส่เบอร์พร้อมเพย์จริงของบ้าน 1
-            scriptUrl: "https://script.google.com/macros/s/xxxxxx_SHEET_1_xxxxxx/exec", 
+
+        "4": { 
+            name: "Eggy Egg Eggg", 
+            bankDetails: {
+                bankName: "ธนาคารกสิกรไทย (KBank)",
+                accNo: "111-1-11111-1",
+                accName: "นาย ตั้งหวัง เจ๊ง"
+            },
+            qrImage: "", 
+            scriptUrl: "", 
             menu: [
-                { id: 401, name: 'เอสเพรสโซ่', price: 40, image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' },
-                { id: 402, name: 'ลาเต้เย็น', price: 50, image: 'https://images.unsplash.com/photo-1461023058943-716d192f2279?w=300' }
-            ]
+                { id: 401, name: 'เอสเพรสโซ่', price: 40, image: '' }
+
+            ] 
         },
-        "5": {
-            name: "Clause Bite",
-            promptpayId: "0811111111", // 🟢 ใส่เบอร์พร้อมเพย์จริงของบ้าน 1
-            scriptUrl: "https://script.google.com/macros/s/xxxxxx_SHEET_1_xxxxxx/exec", 
+
+        "5": { 
+            name: "Clause Bite", 
+            bankDetails: {
+                bankName: "ธนาคารกสิกรไทย (KBank)",
+                accNo: "111-1-11111-1",
+                accName: "นาย ตั้งหวัง เจ๊ง"
+            },
+            qrImage: "", 
+            scriptUrl: "", 
             menu: [
-                { id: 501, name: 'เอสเพรสโซ่', price: 40, image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' },
-                { id: 502, name: 'ลาเต้เย็น', price: 50, image: 'https://images.unsplash.com/photo-1461023058943-716d192f2279?w=300' }
-            ]
+                { id: 501, name: 'เอสเพรสโซ่', price: 40, image: '' }
+
+            ] 
         },
-        "6": {
-            name: "Oktoberfest",
-            promptpayId: "0811111111", // 🟢 ใส่เบอร์พร้อมเพย์จริงของบ้าน 1
-            scriptUrl: "https://script.google.com/macros/s/xxxxxx_SHEET_1_xxxxxx/exec", 
+
+        "6": { 
+            name: "Oktoberfest", 
+            bankDetails: {
+                bankName: "ธนาคารกสิกรไทย (KBank)",
+                accNo: "111-1-11111-1",
+                accName: "นาย ตั้งหวัง เจ๊ง"
+            }, 
+            qrImage: "",
+            scriptUrl: "", 
             menu: [
-                { id: 601, name: 'เอสเพรสโซ่', price: 40, image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' },
-                { id: 602, name: 'ลาเต้เย็น', price: 50, image: 'https://images.unsplash.com/photo-1461023058943-716d192f2279?w=300' }
-            ]
+                { id: 601, name: 'เอสเพรสโซ่', price: 40, image: '' }
+
+            ] 
         },
-        "7": {
-            name: "La tominata festival",
-            promptpayId: "0811111111", // 🟢 ใส่เบอร์พร้อมเพย์จริงของบ้าน 1
-            scriptUrl: "https://script.google.com/macros/s/xxxxxx_SHEET_1_xxxxxx/exec", 
+
+        "7": { 
+            name: "La tominata festival", 
+            bankDetails: {
+                bankName: "ธนาคารกสิกรไทย (KBank)",
+                accNo: "111-1-11111-1",
+                accName: "นาย ตั้งหวัง เจ๊ง"
+            }, 
+            qrImage: "",
+            scriptUrl: "", 
             menu: [
-                { id: 701, name: 'เอสเพรสโซ่', price: 40, image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' },
-                { id: 702, name: 'ลาเต้เย็น', price: 50, image: 'https://images.unsplash.com/photo-1461023058943-716d192f2279?w=300' }
-            ]
+                { id: 701, name: 'เอสเพรสโซ่', price: 40, image: '' }
+
+            ] 
         },
+
         "8": {
             name: "Incredible india",
-            promptpayId: "0888888888", // 🟢 ใส่เบอร์พร้อมเพย์จริงของบ้าน 8
+            bankDetails: {
+                bankName: "ธนาคารกรุงไทย (KTB)",
+                accNo: "888-8-88888-8",
+                accName: "นาย อินเดีย นามสมมติ"
+            },
+            qrImage: "https://drive.google.com/thumbnail?id=13_dZZFeRwDJfTrobbIu8ASPUFzLbSwSf&sz=w800", 
             scriptUrl: "https://script.google.com/macros/s/AKfycbx31Z9UdyELzCUU4As7hSQHqM3F9NbstIm40kK6Vt_KkSydhF5yLU6KaknAhKZ1XfYKbQ/exec",
             menu: [
                 { id: 801, name: 'หมี่ไก่ฉีก', price: 59, image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=300' },
                 { id: 802, name: 'ขนมปังใส่ไส้', price: 20, image: 'https://images.unsplash.com/photo-1603133872878-684f571d70f2?w=300' },
                 { id: 803, name: 'ชาอัสสัม', price: 35, image: 'https://images.unsplash.com/photo-1603133872878-684f571d70f2?w=300' }
+            ],
+            promoGroups: [
+                { 
+                    validCodes: ["COMBO89", "CB89", "A001"], 
+                    type: "flat",          
+                    value: 9,              
+                    description: "ส่วนลดจับคู่ 9 บาท" 
+                }
             ]
         }
     };
 
-    // Database ผู้ใช้งาน
     const usersDB = [
         { username: 'baan1', password: 'hailnight', houseId: '1' },
         { username: 'baan2', password: 'hailnight', houseId: '2' },
@@ -269,22 +374,43 @@
             return {
                 loginForm: { username: '', password: '' },
                 currentUser: null,
-                
-                // ตัวแปรสำหรับเก็บ Config ของบ้านที่ล็อกอินอยู่
                 currentMenu: [],
                 currentScriptUrl: '',
                 configName: '',
-                currentPromptPay: '', // เก็บเบอร์พร้อมเพย์ปัจจุบัน
+                currentBankDetails: { bankName: '', accNo: '', accName: '' }, 
+                currentQrImage: '', // เก็บลิงก์รูป QR Code ของบ้านปัจจุบัน
+                currentPromoGroupsDB: [], 
                 
                 loginError: '',
                 cart: [],
-                qrCodeUrl: '',
+                
+                queueNumber: '',
+                customerName: '',
+                promoCodeInput: '',
+                appliedPromo: null,
+                promoMessage: '',
+
                 paymentModal: null,
                 isLoading: false
             }
         },
         computed: {
-            totalPrice() { return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0); }
+            subTotal() { 
+                return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0); 
+            },
+            discountAmount() {
+                if (!this.appliedPromo) return 0;
+                
+                if (this.appliedPromo.type === 'flat') {
+                    return this.appliedPromo.value;
+                } else if (this.appliedPromo.type === 'percent') {
+                    return Math.floor(this.subTotal * (this.appliedPromo.value / 100));
+                }
+                return 0;
+            },
+            totalPrice() {
+                return Math.max(0, this.subTotal - this.discountAmount);
+            }
         },
         mounted() {
             this.paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
@@ -297,16 +423,16 @@
                     const config = houseConfigs[user.houseId];
                     if (config) {
                         this.currentUser = user;
-                        // โหลดข้อมูลเฉพาะของบ้านนั้นๆ
                         this.currentMenu = config.menu;
                         this.currentScriptUrl = config.scriptUrl;
                         this.configName = config.name;
-                        this.currentPromptPay = config.promptpayId; // ดึงเบอร์พร้อมเพย์มาเก็บไว้
+                        
+                        this.currentBankDetails = config.bankDetails || { bankName: '-', accNo: '-', accName: '-' };
+                        this.currentQrImage = config.qrImage || ''; // ดึงรูปลิงก์จาก config
+                        this.currentPromoGroupsDB = config.promoGroups || [];
 
                         this.loginError = '';
-                        this.cart = [];
-                    } else {
-                        this.loginError = 'ไม่พบข้อมูล Config ของบ้านนี้';
+                        this.resetOrderForm();
                     }
                 } else {
                     this.loginError = 'ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด';
@@ -316,7 +442,13 @@
                 this.currentUser = null;
                 this.loginForm.username = '';
                 this.loginForm.password = '';
-                this.currentMenu = [];
+                this.resetOrderForm();
+            },
+            resetOrderForm() {
+                this.cart = [];
+                this.queueNumber = '';
+                this.customerName = '';
+                this.removePromo();
             },
             addToCart(item) {
                 const found = this.cart.find(i => i.id === item.id);
@@ -328,16 +460,35 @@
                 else this.cart.splice(index, 1);
             },
             
-            // --- ส่วนสร้าง QR Code ตามเบอร์โทรของบ้าน ---
+            applyPromo() {
+                if (!this.promoCodeInput.trim()) return;
+                
+                const inputCode = this.promoCodeInput.trim().toUpperCase();
+                
+                const foundPromo = this.currentPromoGroupsDB.find(p => 
+                    p.validCodes.some(validCode => validCode.toUpperCase() === inputCode)
+                );
+                
+                if (foundPromo) {
+                    this.appliedPromo = foundPromo;
+                    this.promoMessage = `ใช้สิทธิ์สำเร็จ! ${foundPromo.description}`;
+                } else {
+                    this.promoMessage = 'รหัสไม่ถูกต้อง หรือไม่มีสิทธิ์ใช้';
+                    this.appliedPromo = null;
+                }
+            },
+            removePromo() {
+                this.appliedPromo = null;
+                this.promoCodeInput = '';
+                this.promoMessage = '';
+            },
+
             showPaymentModal() {
-                // สร้างลิงก์ PromptPay โดยใช้เบอร์ที่ดึงมาจาก Config (currentPromptPay)
-                this.qrCodeUrl = `https://promptpay.io/${this.currentPromptPay}/${this.totalPrice}`;
                 this.paymentModal.show();
             },
-            
             confirmPayment() {
                 if (!this.currentScriptUrl || this.currentScriptUrl.includes('xxxxxx')) {
-                    alert('กรุณาตั้งค่า URL Google Sheet ในโค้ดก่อนครับ');
+                    alert('กรุณาตั้งค่า URL Google Sheet');
                     return;
                 }
 
@@ -346,6 +497,8 @@
 
                 const orderData = {
                     houseId: this.currentUser.houseId,
+                    queueNumber: this.queueNumber,
+                    customerName: this.customerName || "-", 
                     items: this.cart,
                     total: this.totalPrice
                 };
@@ -358,8 +511,8 @@
                 })
                 .then(() => {
                     this.isLoading = false;
-                    this.cart = [];
-                    alert('✅ ส่งออเดอร์เรียบร้อย!');
+                    this.resetOrderForm();
+                    alert('✅ บันทึกและส่งออเดอร์เรียบร้อย!');
                 })
                 .catch(error => {
                     this.isLoading = false;
