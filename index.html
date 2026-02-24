@@ -226,6 +226,8 @@
     // 🔴 ข้อมูล 8 บ้าน
     // ==========================================
     const houseConfigs = {
+
+        // บ้าน 1 //
         "1": {
             name: "ตั้งหวังเจ๊ง",
             bankDetails: {
@@ -243,6 +245,7 @@
             promoGroups: [] 
         },
 
+        // บ้าน 2 //
         "2": { 
             name: "Summer splash",
             bankDetails: {
@@ -258,6 +261,7 @@
             ] 
         },
         
+        // บ้าน 3 //
         "3": { 
             name: "Tales of Tanabata", 
             bankDetails: {
@@ -273,6 +277,7 @@
             ] 
         },
 
+        // บ้าน 4 //
         "4": { 
             name: "Eggy Egg Eggg", 
             bankDetails: {
@@ -288,6 +293,7 @@
             ] 
         },
 
+        // บ้าน 5 //
         "5": { 
             name: "Clause Bite", 
             bankDetails: {
@@ -303,6 +309,7 @@
             ] 
         },
 
+        // บ้าน 6 //
         "6": { 
             name: "Oktoberfest", 
             bankDetails: {
@@ -318,6 +325,7 @@
             ] 
         },
 
+        // บ้าน 7 //
         "7": { 
             name: "La tominata festival", 
             bankDetails: {
@@ -332,7 +340,8 @@
 
             ] 
         },
-
+        
+        // บ้าน 8 //
         "8": {
             name: "Incredible india",
             bankDetails: {
@@ -340,20 +349,61 @@
                 accNo: "223-8-96121-4",
                 accName: "นางสาวธมลวรรณ ทองย้อย และ นายอภิวิชญ์ เจริญรัตน์"
             },
-            qrImage: "https://drive.google.com/thumbnail?id=1451Y7kY-kGxztrvwlBeaXoYEenaBnEdm&sz=w800", 
+            qrImage: "https://drive.google.com/thumbnail?id=1kdDcRFEdxd5xL6cKywwZpJoxyE_LBXal&sz=w800", 
             scriptUrl: "https://script.google.com/macros/s/AKfycbx31Z9UdyELzCUU4As7hSQHqM3F9NbstIm40kK6Vt_KkSydhF5yLU6KaknAhKZ1XfYKbQ/exec",
             menu: [
-                { id: 801, name: 'หมี่ไก่ฉีก', price: 59, image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=300' },
-                { id: 802, name: 'ขนมปังใส่ไส้', price: 20, image: 'https://images.unsplash.com/photo-1603133872878-684f571d70f2?w=300' },
-                { id: 803, name: 'ชาอัสสัม', price: 35, image: 'https://images.unsplash.com/photo-1603133872878-684f571d70f2?w=300' }
+                { id: 801, name: 'หมี่ไก่ฉีก', price: 59, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 802, name: 'ขนมปังแยมสตอเบอรี่', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 803, name: 'ขนมปังแยมสังขยาใบเตย', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 804, name: 'ขนมปังแยมช็อกโกแลต', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 805, name: 'เพิ่มอัลมอนสไลด์', price: 5, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 806, name: 'เพิ่มคอนเฟลก', price: 5, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 807, name: 'ขนมปังหมูหยองพริกเผา', price: 20, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 808, name: 'ขนมปังหมูหยองน้ำสลัดโบราณ', price: 20, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 809, name: 'ชาอัสสัม', price: 39, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 810, name: 'Holi glow tattoo bar', price: 5, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 811, name: 'Holi glow tattoo bar', price: 10, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 812, name: 'Holi glow tattoo bar', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 813, name: 'Photobooth', price: 69, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
+                { id: 814, name: 'มหาราชาอั๊สสั่งลุย999', price: 20, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
             ],
             promoGroups: [
                 { 
-                    validCodes: ["COMBO89", "CB89", "A001"], 
+                    //Combo หมี่ไก่ฉีกและชา//
+                    validCodes: ["COMBO89"], 
                     type: "flat",          
                     value: 9,              
                     description: "ส่วนลดจับคู่ 9 บาท" 
-                }
+                },
+                { 
+                    //Combo มหาราชา999//
+                    validCodes: ["US999"], 
+                    type: "flat",          
+                    value: 20,              
+                    description: "ส่วนลดเล่นฟรีอีก 1 รอบ" 
+                },
+                { 
+                    //Combo 67_1//
+                    validCodes: ["671"], 
+                    type: "flat",          
+                    value: 7,              
+                    description: "ส่วนลด Photobooth และ tattoo เหลือ 67 บาท" 
+                },
+                { 
+                    //Combo 67_2//
+                    validCodes: ["672"], 
+                    type: "flat",          
+                    value: 12,              
+                    description: "ส่วนลด Photobooth และ tattoo เหลือ 67 บาท" 
+                },
+                { 
+                    //Combo 67_3//
+                    validCodes: ["673"], 
+                    type: "flat",          
+                    value: 17,              
+                    description: "ส่วนลด Photobooth และ tattoo เหลือ 67 บาท" 
+                },
+
             ]
         }
     };
