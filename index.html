@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-House POS System (Bank & QR Image)</title>
+    <title>Multi-House POS (POS & Dashboard)</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -19,8 +19,14 @@
         .sidebar { height: calc(100vh - 56px); overflow-y: auto; background: white; border-left: 1px solid #ddd; position: fixed; right: 0; width: 35%; }
         .main-content { margin-right: 35%; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        
         .bank-details-card { background: #f8f9fa; border-left: 5px solid #0d6efd; border-radius: 8px; }
+        .table-responsive { max-height: calc(100vh - 150px); overflow-y: auto; }
+
+        /* สีสถานะ */
+        .status-pending { background-color: #ffc107 !important; color: #000; }
+        .status-completed { background-color: #198754 !important; color: #fff; }
+        .status-cancelled { background-color: #dc3545 !important; color: #fff; }
+        .strike-through { text-decoration: line-through; opacity: 0.6; }
 
         @media (max-width: 768px) {
             .sidebar { position: static; width: 100%; height: auto; }
@@ -34,8 +40,7 @@
 
     <div v-if="isLoading" class="loading-overlay">
         <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
-        <h4 class="text-dark">กำลังบันทึกออเดอร์...</h4>
-        <p class="text-muted">ส่งข้อมูลไปยัง Google Sheet บ้าน {{ currentUser?.houseId }}</p>
+        <h4 class="text-dark">กำลังประมวลผล...</h4>
     </div>
 
     <div v-if="!currentUser" class="login-wrapper">
@@ -44,18 +49,18 @@
                 <div class="bg-warning text-dark rounded-circle d-inline-flex justify-content-center align-items-center mb-3 shadow-sm" style="width: 70px; height: 70px;">
                     <i class="fas fa-cash-register fa-2x"></i>
                 </div>
-                <h4 class="fw-bold">ระบบรับออเดอร์</h4>
+                <h4 class="fw-bold">เข้าสู่ระบบ POS</h4>
             </div>
             <form @submit.prevent="login">
                 <div class="form-floating mb-3">
-                    <input type="text" v-model="loginForm.username" class="form-control" id="floatingInput" placeholder="Username">
-                    <label for="floatingInput">Username</label>
+                    <input type="text" v-model="loginForm.username" class="form-control" placeholder="Username">
+                    <label>Username</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="password" v-model="loginForm.password" class="form-control" id="floatingPassword" placeholder="Password">
-                    <label for="floatingPassword">Password</label>
+                    <input type="password" v-model="loginForm.password" class="form-control" placeholder="Password">
+                    <label>Password</label>
                 </div>
-                <div v-if="loginError" class="alert alert-danger py-2 small text-center rounded-3">{{ loginError }}</div>
+                <div v-if="loginError" class="alert alert-danger py-2 small text-center">{{ loginError }}</div>
                 <button type="submit" class="btn btn-dark w-100 py-3 fs-5 rounded-pill shadow-sm">เข้าสู่ระบบ</button>
             </form>
         </div>
@@ -67,26 +72,48 @@
                 <div class="bg-warning text-dark rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 35px; height: 35px; font-size: 1rem; font-weight: bold;">
                     {{ currentUser.houseId }}
                 </div>
-                <div>
-                    <div style="font-size: 1rem;">{{ configName }}</div>
-                </div>
+                <div><div style="font-size: 1rem;">{{ configName }}</div></div>
             </span>
-            <button class="btn btn-outline-light btn-sm" @click="logout">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
+            
+            <div class="btn-group mx-auto" role="group">
+                <button type="button" class="btn btn-sm" :class="currentTab === 'pos' ? 'btn-light fw-bold' : 'btn-outline-light'" @click="currentTab = 'pos'">
+                    <i class="fas fa-cash-register me-1"></i> หน้าขาย
+                </button>
+                <button type="button" class="btn btn-sm" :class="currentTab === 'history' ? 'btn-light fw-bold' : 'btn-outline-light'" @click="switchTab('history')">
+                    <i class="fas fa-list-alt me-1"></i> จัดการออเดอร์
+                </button>
+            </div>
+
+            <button class="btn btn-outline-danger btn-sm" @click="logout"><i class="fas fa-sign-out-alt"></i></button>
         </nav>
 
-        <div class="container-fluid p-0">
+        <div v-if="currentTab === 'pos'" class="container-fluid p-0">
             <div class="row g-0">
-                
                 <div class="col-md-8 p-4 main-content">
-                    <div class="row g-3">
-                        <div class="col-lg-3 col-md-4 col-6" v-for="item in currentMenu" :key="item.id">
-                            <div class="card product-card shadow-sm rounded-3" @click="addToCart(item)">
-                                <img :src="item.image" class="product-img">
-                                <div class="card-body text-center p-2">
-                                    <h6 class="card-title text-truncate mb-1 fw-bold">{{ item.name }}</h6>
-                                    <span class="badge bg-dark rounded-pill">{{ item.price }} ฿</span>
+                    <div v-if="foodMenu.length > 0" class="mb-5">
+                        <h5 class="mb-3 border-bottom pb-2 text-primary fw-bold"><i class="fas fa-utensils me-2"></i>หมวดอาหาร</h5>
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-4 col-6" v-for="item in foodMenu" :key="item.id">
+                                <div class="card product-card shadow-sm rounded-3" @click="addToCart(item)">
+                                    <img :src="item.image" class="product-img">
+                                    <div class="card-body text-center p-2">
+                                        <h6 class="card-title text-truncate mb-1 fw-bold">{{ item.name }}</h6>
+                                        <span class="badge bg-dark rounded-pill">{{ item.price }} ฿</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="activityMenu.length > 0">
+                        <h5 class="mb-3 border-bottom pb-2 text-success fw-bold"><i class="fas fa-ticket-alt me-2"></i>หมวดกิจกรรม</h5>
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-4 col-6" v-for="item in activityMenu" :key="item.id">
+                                <div class="card product-card shadow-sm rounded-3" @click="addToCart(item)">
+                                    <img :src="item.image" class="product-img">
+                                    <div class="card-body text-center p-2">
+                                        <h6 class="card-title text-truncate mb-1 fw-bold">{{ item.name }}</h6>
+                                        <span class="badge bg-dark rounded-pill">{{ item.price }} ฿</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -95,7 +122,6 @@
 
                 <div class="col-md-4 sidebar p-4 d-flex flex-column shadow">
                     <h5 class="mb-3 border-bottom pb-2 fw-bold text-primary"><i class="fas fa-shopping-basket me-2"></i>ออเดอร์ปัจจุบัน</h5>
-                    
                     <div class="flex-grow-1 overflow-auto mb-3">
                         <table class="table table-borderless align-middle mb-0">
                             <tr v-for="(item, index) in cart" :key="index" class="border-bottom">
@@ -103,7 +129,7 @@
                                     <div class="fw-bold">{{ item.name }}</div>
                                     <div class="text-muted small">{{ item.price }} x {{ item.qty }}</div>
                                 </td>
-                                <td class="text-end text-nowrap">
+                                <td class="text-end">
                                     <div class="btn-group btn-group-sm">
                                         <button class="btn btn-outline-secondary" @click="decreaseQty(index)">-</button>
                                         <span class="btn btn-light disabled text-dark fw-bold border" style="width:35px">{{ item.qty }}</span>
@@ -113,60 +139,92 @@
                                 <td class="text-end fw-bold">{{ item.price * item.qty }}</td>
                             </tr>
                         </table>
-                        <div v-if="cart.length === 0" class="text-center text-muted py-5">
-                            <i class="fas fa-cart-arrow-down fa-3x mb-3 opacity-25"></i>
-                            <p>ยังไม่มีรายการอาหาร</p>
-                        </div>
                     </div>
-
+                    
                     <div class="bg-white p-3 rounded-3 shadow-sm border mb-3">
-                        <h6 class="fw-bold fs-6"><i class="fas fa-user-tag me-2"></i>ข้อมูลลูกค้า</h6>
-                        <div class="row g-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold fs-6 mb-0"><i class="fas fa-user-tag me-2"></i>ข้อมูลลูกค้า & คิว</h6>
+                            <button class="btn btn-sm btn-outline-danger" @click="resetQueue"><i class="fas fa-redo me-1"></i></button>
+                        </div>
+                        <div class="row g-2 align-items-center">
                             <div class="col-4">
-                                <input type="text" v-model="queueNumber" class="form-control form-control-sm border-primary" placeholder="คิวที่ *" required>
+                                <div class="bg-primary text-white rounded p-2 text-center h-100 d-flex flex-column justify-content-center">
+                                    <small style="font-size: 0.7rem;">คิวที่</small>
+                                    <h3 class="mb-0 fw-bold">{{ currentQueue }}</h3>
+                                </div>
                             </div>
                             <div class="col-8">
-                                <input type="text" v-model="customerName" class="form-control form-control-sm" placeholder="ชื่อลูกค้า (ไม่บังคับ)">
+                                <input type="text" v-model="customerName" class="form-control" placeholder="ชื่อลูกค้า">
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-3 rounded-3 shadow-sm border mb-3">
-                        <h6 class="fw-bold fs-6"><i class="fas fa-ticket-alt me-2"></i>รหัสโปรโมชั่น</h6>
-                        <div class="input-group input-group-sm">
-                            <input type="text" v-model="promoCodeInput" class="form-control text-uppercase" placeholder="กรอกรหัสส่วนลด" :disabled="appliedPromo !== null">
-                            <button v-if="!appliedPromo" class="btn btn-outline-success" @click="applyPromo">ใช้งาน</button>
-                            <button v-else class="btn btn-danger" @click="removePromo">ยกเลิก</button>
-                        </div>
-                        <div v-if="promoMessage" :class="{'text-success': appliedPromo, 'text-danger': !appliedPromo}" class="small mt-2 fw-bold">
-                            <i :class="appliedPromo ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i> {{ promoMessage }}
                         </div>
                     </div>
 
                     <div class="bg-light p-3 rounded-3 border">
-                        <div class="d-flex justify-content-between mb-2 text-muted" v-if="discountAmount > 0">
-                            <span>รวมเป็นเงิน</span>
-                            <span>{{ subTotal }} ฿</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 text-success fw-bold" v-if="discountAmount > 0">
-                            <span><i class="fas fa-tags me-1"></i>ส่วนลดโปรโมชั่น</span>
-                            <span>-{{ discountAmount }} ฿</span>
-                        </div>
                         <div class="d-flex justify-content-between fs-5 fw-bold mb-3 border-top pt-2">
-                            <span>ยอดรวมสุทธิ</span>
-                            <span class="text-primary">{{ totalPrice }} ฿</span>
+                            <span>ยอดรวมสุทธิ</span><span class="text-primary">{{ totalPrice }} ฿</span>
                         </div>
-
-                        <button class="btn w-100 py-3 fs-5 shadow-sm fw-bold" 
-                                :class="(cart.length > 0 && queueNumber) ? 'btn-success' : 'btn-secondary'"
-                                :disabled="cart.length === 0 || !queueNumber" 
-                                @click="showPaymentModal">
-                            <i class="fas fa-money-bill-wave me-2"></i> ชำระเงิน
+                        <button class="btn w-100 py-3 fs-5 shadow-sm fw-bold btn-success" :disabled="cart.length === 0" @click="showPaymentModal">
+                            <i class="fas fa-paper-plane me-2"></i> ส่งออเดอร์
                         </button>
-                        <div v-if="cart.length > 0 && !queueNumber" class="text-danger small text-center mt-2">
-                            * กรุณาระบุหมายเลขคิวก่อนชำระเงิน
-                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="currentTab === 'history'" class="container p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold text-dark"><i class="fas fa-list-alt text-primary me-2"></i> รายการออเดอร์ทั้งหมด</h4>
+                <button class="btn btn-outline-primary" @click="fetchOrders">
+                    <i class="fas fa-sync-alt me-1"></i> ดึงข้อมูลล่าสุด
+                </button>
+            </div>
+            
+            <div class="card shadow-sm border-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th>เวลา</th>
+                                <th>คิว</th>
+                                <th>ชื่อลูกค้า</th>
+                                <th>รายการอาหาร</th>
+                                <th>รายการกิจกรรม</th>
+                                <th>ยอดรวม</th>
+                                <th class="text-center" style="width: 140px;">สถานะ</th>
+                                <th class="text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-if="orderHistory.length === 0">
+                                <td colspan="8" class="text-center py-4 text-muted">ไม่พบข้อมูลออเดอร์ หรือกำลังโหลด...</td>
+                            </tr>
+                            <tr v-for="order in orderHistory" :key="order.row" :class="{'strike-through': order.status === 'cancelled'}">
+                                <td class="small text-muted">{{ order.timestamp }}</td>
+                                <td><span class="badge bg-primary fs-6">{{ order.queue }}</span></td>
+                                <td class="fw-bold">{{ order.name }}</td>
+                                <td style="white-space: pre-line;" class="small">{{ order.food }}</td>
+                                <td style="white-space: pre-line;" class="small text-success">{{ order.activity }}</td>
+                                <td class="fw-bold text-danger">{{ order.total }} ฿</td>
+                                
+                                <td class="text-center">
+                                    <select class="form-select form-select-sm fw-bold border-0 shadow-sm" 
+                                            :class="'status-' + order.status" 
+                                            v-model="order.status" 
+                                            @change="quickUpdateStatus(order)">
+                                        <option value="pending" class="bg-white text-dark">⏳ รอทำอาหาร</option>
+                                        <option value="completed" class="bg-white text-dark">✅ เสร็จแล้ว</option>
+                                        <option value="cancelled" class="bg-white text-dark">❌ ยกเลิก</option>
+                                    </select>
+                                </td>
+
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning shadow-sm" @click="openEditModal(order)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -176,40 +234,71 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="fas fa-university me-2"></i>โอนเงินชำระค่าอาหาร</h5>
+                    <h5 class="modal-title">ยืนยันออเดอร์</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center p-4">
-                    <div class="mb-3">
-                        <span class="badge bg-warning text-dark fs-6 me-2">คิวที่ {{ queueNumber }}</span>
-                        <span v-if="customerName" class="fw-bold text-muted">คุณ {{ customerName }}</span>
-                    </div>
-
-                    <h6 class="text-muted mb-1">ยอดที่ต้องชำระ</h6>
-                    <div v-if="discountAmount > 0" class="text-muted text-decoration-line-through fs-5">
-                        {{ subTotal }} บาท
-                    </div>
                     <h1 class="text-dark display-3 fw-bold mb-4">{{ totalPrice }} <span class="fs-5">บาท</span></h1>
-                    
                     <div v-if="currentQrImage" class="mb-4">
                         <div class="card p-2 d-inline-block bg-white shadow-sm border-0 rounded-4">
                             <img :src="currentQrImage" class="img-fluid rounded" style="width: 250px; height: 250px; object-fit: contain;" alt="QR Code สแกนจ่าย">
                         </div>
                         <p class="text-muted small mt-2"><i class="fas fa-camera me-1"></i> สแกน QR Code ด้านบนเพื่อชำระเงิน</p>
                     </div>
-                    
                     <div class="bank-details-card p-3 text-start mx-auto shadow-sm" style="max-width: 350px;">
                         <p class="mb-1 text-muted small"><i class="fas fa-info-circle me-1"></i>โอนเข้าบัญชี:</p>
                         <h5 class="fw-bold text-primary mb-2">{{ currentBankDetails.bankName }}</h5>
                         <p class="mb-1 fs-5">เลขบัญชี: <span class="fw-bold text-dark">{{ currentBankDetails.accNo }}</span></p>
                         <p class="mb-0">ชื่อบัญชี: <span class="fw-bold">{{ currentBankDetails.accName }}</span></p>
                     </div>
-                </div>
-                <div class="modal-footer justify-content-center bg-light">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="button" class="btn btn-success px-4 fw-bold" @click="confirmPayment">
-                        <i class="fas fa-check-circle me-1"></i> ยืนยันว่าโอนเงินแล้ว
+                    <button type="button" class="btn btn-success px-4 py-2 fw-bold w-100 fs-5" @click="confirmPayment">
+                        ยืนยันการโอนเงินและส่งข้อมูลไป Google Sheet
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>แก้ไขออเดอร์ (คิว {{ editingOrder.queue }})</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">คิวที่</label>
+                        <input type="text" class="form-control" v-model="editingOrder.queue">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">ชื่อลูกค้า</label>
+                        <input type="text" class="form-control" v-model="editingOrder.name">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">รายการอาหาร</label>
+                        <textarea class="form-control" rows="3" v-model="editingOrder.food"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">รายการกิจกรรม</label>
+                        <textarea class="form-control" rows="3" v-model="editingOrder.activity"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">ยอดรวม</label>
+                        <input type="number" class="form-control" v-model="editingOrder.total">
+                    </div>
+                    <div class="mb-2 border-top pt-2">
+                        <label class="form-label small fw-bold text-primary">สถานะออเดอร์</label>
+                        <select class="form-select" v-model="editingOrder.status">
+                            <option value="pending">⏳ รอทำอาหาร</option>
+                            <option value="completed">✅ เสร็จแล้ว</option>
+                            <option value="cancelled">❌ ยกเลิก</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" @click="saveEdit">บันทึกการแก้ไข</button>
                 </div>
             </div>
         </div>
@@ -218,15 +307,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
     const { createApp } = Vue;
 
-    // ==========================================
-    // 🔴 ข้อมูล 8 บ้าน
-    // ==========================================
     const houseConfigs = {
-
         // บ้าน 1 //
         "1": {
             name: "ตั้งหวังเจ๊ง",
@@ -239,8 +323,8 @@
             qrImage: "https://drive.google.com/file/d/1blYpuwXAAINvT17JF0GelkKp-m2kG8Yr/view?usp=drive_link", 
             scriptUrl: "https://script.google.com/macros/s/xxxxxx_SHEET_1_xxxxxx/exec", 
             menu: [
-                { id: 101, name: 'เอสเพรสโซ่', price: 40, image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' },
-                { id: 102, name: 'ลาเต้เย็น', price: 50, image: 'https://images.unsplash.com/photo-1461023058943-716d192f2279?w=300' }
+                { id: 101, name: 'เอสเพรสโซ่', price: 40, image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' , category: ''},
+                { id: 102, name: 'ลาเต้เย็น', price: 50, image: 'https://images.unsplash.com/photo-1461023058943-716d192f2279?w=300' , category: ''}
             ],
             promoGroups: [] 
         },
@@ -256,7 +340,7 @@
             qrImage: "",
             scriptUrl: "", 
             menu: [
-                { id: 201, name: 'ข้าวมันไก่ต้ม', price: 50, image: '' }
+                { id: 201, name: 'ข้าวมันไก่ต้ม', price: 50, image: '' , category: ''}
 
             ] 
         },
@@ -272,7 +356,7 @@
             qrImage: "", 
             scriptUrl: "", 
             menu: [
-                { id: 301, name: 'เอสเพรสโซ่', price: 40, image: '' }
+                { id: 301, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
 
             ] 
         },
@@ -288,7 +372,7 @@
             qrImage: "", 
             scriptUrl: "", 
             menu: [
-                { id: 401, name: 'เอสเพรสโซ่', price: 40, image: '' }
+                { id: 401, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
 
             ] 
         },
@@ -304,7 +388,7 @@
             qrImage: "", 
             scriptUrl: "", 
             menu: [
-                { id: 501, name: 'เอสเพรสโซ่', price: 40, image: '' }
+                { id: 501, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
 
             ] 
         },
@@ -320,7 +404,7 @@
             qrImage: "",
             scriptUrl: "", 
             menu: [
-                { id: 601, name: 'เอสเพรสโซ่', price: 40, image: '' }
+                { id: 601, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
 
             ] 
         },
@@ -334,80 +418,29 @@
                 accName: "นาย ตั้งหวัง เจ๊ง"
             }, 
             qrImage: "",
-            scriptUrl: "", 
+            scriptUrl: "https://script.google.com/macros/s/AKfycbzpqHJ2My5P6hoh6NQMWDJt7MQAuLWLrPyxKLi9xonOpchL2ZBJ7IbSYhq0r-m7xst7/exec", 
             menu: [
-                { id: 701, name: 'เอสเพรสโซ่', price: 40, image: '' }
+                { id: 701, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
 
             ] 
         },
-        
-        // บ้าน 8 //
+
         "8": {
             name: "Incredible india",
             bankDetails: {
-                bankName: "ธนาคารกสิกรไทย",
+                bankNames:"ธนาคารกสิกรไทย",
                 accNo: "223-8-96121-4",
                 accName: "นางสาวธมลวรรณ ทองย้อย และ นายอภิวิชญ์ เจริญรัตน์"
             },
-            qrImage: "https://drive.google.com/thumbnail?id=1kdDcRFEdxd5xL6cKywwZpJoxyE_LBXal&sz=w800", 
-            scriptUrl: "https://script.google.com/macros/s/AKfycbx31Z9UdyELzCUU4As7hSQHqM3F9NbstIm40kK6Vt_KkSydhF5yLU6KaknAhKZ1XfYKbQ/exec",
+            qrImage: "https://drive.google.com/thumbnail?id=1kdDcRFEdxd5xL6cKywwZpJoxyE_LBXal&sz=w800",
+            scriptUrl: "https://script.google.com/macros/s/AKfycbxIYa_4WE1kkbNTtR_bNcBiv9ma6tpkD4pQUsQheZzACfBx6qVnkxCIgYhPTqh0Eyn-XA/exec",
             menu: [
-                { id: 801, name: 'หมี่ไก่ฉีก', price: 59, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 802, name: 'ขนมปังแยมสตอเบอรี่', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 803, name: 'ขนมปังแยมสังขยาใบเตย', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 804, name: 'ขนมปังแยมช็อกโกแลต', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 805, name: 'เพิ่มอัลมอนสไลด์', price: 5, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 806, name: 'เพิ่มคอนเฟลก', price: 5, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 807, name: 'ขนมปังหมูหยองพริกเผา', price: 20, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 808, name: 'ขนมปังหมูหยองน้ำสลัดโบราณ', price: 20, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 809, name: 'ชาอัสสัม', price: 39, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 810, name: 'Holi glow tattoo bar', price: 5, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 811, name: 'Holi glow tattoo bar', price: 10, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 812, name: 'Holi glow tattoo bar', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 813, name: 'Photobooth', price: 69, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-                { id: 814, name: 'มหาราชาอั๊สสั่งลุย999', price: 20, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' },
-            ],
-            promoGroups: [
-                { 
-                    //Combo หมี่ไก่ฉีกและชา//
-                    validCodes: ["COMBO89"], 
-                    type: "flat",          
-                    value: 9,              
-                    description: "ส่วนลดจับคู่ 9 บาท" 
-                },
-                { 
-                    //Combo มหาราชา999//
-                    validCodes: ["US999"], 
-                    type: "flat",          
-                    value: 20,              
-                    description: "ส่วนลดเล่นฟรีอีก 1 รอบ" 
-                },
-                { 
-                    //Combo 67_1//
-                    validCodes: ["671"], 
-                    type: "flat",          
-                    value: 7,              
-                    description: "ส่วนลด Photobooth และ tattoo เหลือ 67 บาท" 
-                },
-                { 
-                    //Combo 67_2//
-                    validCodes: ["672"], 
-                    type: "flat",          
-                    value: 12,              
-                    description: "ส่วนลด Photobooth และ tattoo เหลือ 67 บาท" 
-                },
-                { 
-                    //Combo 67_3//
-                    validCodes: ["673"], 
-                    type: "flat",          
-                    value: 17,              
-                    description: "ส่วนลด Photobooth และ tattoo เหลือ 67 บาท" 
-                },
-
+                { id: 801, name: 'หมี่ไก่ฉีก', price: 59, image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=300', category: 'food' },
+                { id: 802, name: 'ชาอัสสัม', price: 39, image: 'https://images.unsplash.com/photo-1603133872878-684f571d70f2?w=300', category: 'food' },
+                { id: 804, name: 'Photobooth', price: 67, image: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=300', category: 'activity' }
             ]
         }
     };
-
     const usersDB = [
         { username: 'baan1', password: 'hailnight', houseId: '1' },
         { username: 'baan2', password: 'hailnight', houseId: '2' },
@@ -422,132 +455,86 @@
     createApp({
         data() {
             return {
+                currentTab: 'pos', 
                 loginForm: { username: '', password: '' },
-                currentUser: null,
-                currentMenu: [],
-                currentScriptUrl: '',
-                configName: '',
-                currentBankDetails: { bankName: '', accNo: '', accName: '' }, 
-                currentQrImage: '', // เก็บลิงก์รูป QR Code ของบ้านปัจจุบัน
-                currentPromoGroupsDB: [], 
+                currentUser: null, currentMenu: [], currentScriptUrl: '', configName: '',
+                currentBankDetails: { bankName: '', accNo: '', accName: '' }, currentqrImage: '',
+                loginError: '', cart: [], currentQueue: 1, customerName: '',
+                paymentModal: null, editModal: null, isLoading: false,
                 
-                loginError: '',
-                cart: [],
-                
-                queueNumber: '',
-                customerName: '',
-                promoCodeInput: '',
-                appliedPromo: null,
-                promoMessage: '',
-
-                paymentModal: null,
-                isLoading: false
+                orderHistory: [], 
+                editingOrder: {}  
             }
         },
         computed: {
-            subTotal() { 
-                return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0); 
-            },
-            discountAmount() {
-                if (!this.appliedPromo) return 0;
-                
-                if (this.appliedPromo.type === 'flat') {
-                    return this.appliedPromo.value;
-                } else if (this.appliedPromo.type === 'percent') {
-                    return Math.floor(this.subTotal * (this.appliedPromo.value / 100));
-                }
-                return 0;
-            },
-            totalPrice() {
-                return Math.max(0, this.subTotal - this.discountAmount);
-            }
+            foodMenu() { return this.currentMenu.filter(item => item.category === 'food' || !item.category); },
+            activityMenu() { return this.currentMenu.filter(item => item.category === 'activity'); },
+            totalPrice() { return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0); }
         },
         mounted() {
             this.paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+            this.editModal = new bootstrap.Modal(document.getElementById('editModal'));
         },
         methods: {
             login() {
                 const user = usersDB.find(u => u.username === this.loginForm.username && u.password === this.loginForm.password);
-                
                 if (user) {
                     const config = houseConfigs[user.houseId];
                     if (config) {
-                        this.currentUser = user;
-                        this.currentMenu = config.menu;
-                        this.currentScriptUrl = config.scriptUrl;
-                        this.configName = config.name;
-                        
+                        this.currentUser = user; this.currentMenu = config.menu;
+                        this.currentScriptUrl = config.scriptUrl; this.configName = config.name;
                         this.currentBankDetails = config.bankDetails || { bankName: '-', accNo: '-', accName: '-' };
-                        this.currentQrImage = config.qrImage || ''; // ดึงรูปลิงก์จาก config
-                        this.currentPromoGroupsDB = config.promoGroups || [];
-
+                        this.currentQrImage = config.qrImage || '';
+                        this.loadQueueNumber();
                         this.loginError = '';
-                        this.resetOrderForm();
                     }
-                } else {
-                    this.loginError = 'ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด';
-                }
+                } else this.loginError = 'ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด';
             },
-            logout() {
-                this.currentUser = null;
-                this.loginForm.username = '';
-                this.loginForm.password = '';
-                this.resetOrderForm();
-            },
-            resetOrderForm() {
-                this.cart = [];
-                this.queueNumber = '';
-                this.customerName = '';
-                this.removePromo();
-            },
+            logout() { this.currentUser = null; this.cart = []; },
             addToCart(item) {
                 const found = this.cart.find(i => i.id === item.id);
                 if (found) found.qty++; else this.cart.push({ ...item, qty: 1 });
             },
             increaseQty(index) { this.cart[index].qty++; },
             decreaseQty(index) {
-                if(this.cart[index].qty > 1) this.cart[index].qty--;
-                else this.cart.splice(index, 1);
+                if(this.cart[index].qty > 1) this.cart[index].qty--; else this.cart.splice(index, 1);
+            },
+            loadQueueNumber() {
+                const savedQueue = localStorage.getItem(`queue_${this.currentUser.houseId}`);
+                this.currentQueue = savedQueue ? parseInt(savedQueue) : 1;
+            },
+            resetQueue() {
+                if(confirm('ยืนยันรีเซ็ตคิว?')) {
+                    this.currentQueue = 1; localStorage.setItem(`queue_${this.currentUser.houseId}`, 1);
+                }
+            },
+            showPaymentModal() { this.paymentModal.show(); },
+            
+            switchTab(tab) {
+                this.currentTab = tab;
+                if (tab === 'history') this.fetchOrders();
             },
             
-            applyPromo() {
-                if (!this.promoCodeInput.trim()) return;
-                
-                const inputCode = this.promoCodeInput.trim().toUpperCase();
-                
-                const foundPromo = this.currentPromoGroupsDB.find(p => 
-                    p.validCodes.some(validCode => validCode.toUpperCase() === inputCode)
-                );
-                
-                if (foundPromo) {
-                    this.appliedPromo = foundPromo;
-                    this.promoMessage = `ใช้สิทธิ์สำเร็จ! ${foundPromo.description}`;
-                } else {
-                    this.promoMessage = 'รหัสไม่ถูกต้อง หรือไม่มีสิทธิ์ใช้';
-                    this.appliedPromo = null;
-                }
-            },
-            removePromo() {
-                this.appliedPromo = null;
-                this.promoCodeInput = '';
-                this.promoMessage = '';
-            },
-
-            showPaymentModal() {
-                this.paymentModal.show();
-            },
-            confirmPayment() {
-                if (!this.currentScriptUrl || this.currentScriptUrl.includes('xxxxxx')) {
-                    alert('กรุณาตั้งค่า URL Google Sheet');
-                    return;
-                }
-
-                this.paymentModal.hide();
+            fetchOrders() {
                 this.isLoading = true;
+                fetch(this.currentScriptUrl) 
+                    .then(res => res.json())
+                    .then(data => {
+                        this.orderHistory = data.reverse(); 
+                        this.isLoading = false;
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert("ดึงข้อมูลล้มเหลว ตรวจสอบการตั้งค่า Deploy");
+                        this.isLoading = false;
+                    });
+            },
 
-                const orderData = {
-                    houseId: this.currentUser.houseId,
-                    queueNumber: this.queueNumber,
+            confirmPayment() {
+                this.paymentModal.hide(); this.isLoading = true;
+                const payload = {
+                    action: 'insert',
+                    queueNumber: this.currentQueue,
                     customerName: this.customerName || "-", 
                     items: this.cart,
                     total: this.totalPrice
@@ -555,23 +542,75 @@
 
                 fetch(this.currentScriptUrl, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(orderData)
+                    body: JSON.stringify(payload)
                 })
+                .then(res => res.json())
                 .then(() => {
                     this.isLoading = false;
-                    this.resetOrderForm();
-                    alert('✅ บันทึกและส่งออเดอร์เรียบร้อย!');
+                    this.currentQueue++; localStorage.setItem(`queue_${this.currentUser.houseId}`, this.currentQueue);
+                    this.cart = []; this.customerName = '';
+                    alert('บันทึกเรียบร้อย!');
                 })
-                .catch(error => {
+                .catch(err => { alert('Error: ' + err); this.isLoading = false; });
+            },
+
+            openEditModal(order) {
+                this.editingOrder = { ...order }; 
+                this.editModal.show();
+            },
+
+            saveEdit() {
+                this.editModal.hide(); this.isLoading = true;
+                const payload = {
+                    action: 'update',
+                    row: this.editingOrder.row,
+                    queue: this.editingOrder.queue,
+                    name: this.editingOrder.name,
+                    food: this.editingOrder.food,
+                    activity: this.editingOrder.activity,
+                    total: this.editingOrder.total,
+                    status: this.editingOrder.status // สั่งอัปเดตสถานะด้วย
+                };
+
+                fetch(this.currentScriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(() => {
                     this.isLoading = false;
-                    alert('❌ ผิดพลาด: ' + error);
+                    this.fetchOrders(); // ดึงข้อมูลใหม่
+                    alert('แก้ไขข้อมูลสำเร็จ!');
+                })
+                .catch(err => { alert('Error: ' + err); this.isLoading = false; });
+            },
+
+            // ================= ฟังก์ชันใหม่: อัปเดตเฉพาะสถานะแบบด่วน =================
+            quickUpdateStatus(order) {
+                const payload = {
+                    action: 'updateStatus',
+                    row: order.row,
+                    status: order.status
+                };
+
+                // วิ่งไปอัปเดตเงียบๆ หลังบ้าน โดยไม่ต้องเด้ง Alert กวนใจผู้ใช้
+                fetch(this.currentScriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log(`สถานะคิว ${order.queue} อัปเดตเป็น ${order.status} เรียบร้อย`);
+                })
+                .catch(err => { 
+                    alert('อัปเดตสถานะไม่สำเร็จ: ' + err); 
                 });
             }
         }
     }).mount('#app');
 </script>
-
 </body>
 </html>
