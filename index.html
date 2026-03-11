@@ -90,6 +90,20 @@
         <div v-if="currentTab === 'pos'" class="container-fluid p-0">
             <div class="row g-0">
                 <div class="col-md-8 p-4 main-content">
+                    <div v-if="currentPromotions && currentPromotions.length > 0" class="mb-5">
+                        <h5 class="mb-3 border-bottom pb-2 text-danger fw-bold"><i class="fas fa-star me-2"></i>โปรโมชั่นพิเศษ</h5>
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-4 col-6" v-for="item in currentPromotions" :key="item.id">
+                                <div class="card product-card shadow-sm rounded-3 border-danger border-2" @click="addToCart(item)">
+                                    <img :src="item.image" class="product-img">
+                                    <div class="card-body text-center p-2 bg-light">
+                                        <h6 class="card-title text-truncate mb-1 fw-bold text-danger">{{ item.name }}</h6>
+                                        <span class="badge bg-danger rounded-pill">{{ item.price }} ฿</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div v-if="foodMenu.length > 0" class="mb-5">
                         <h5 class="mb-3 border-bottom pb-2 text-primary fw-bold"><i class="fas fa-utensils me-2"></i>หมวดอาหาร</h5>
                         <div class="row g-3">
@@ -317,16 +331,68 @@
             bankDetails: {
                 bankName: "ธนาคารกสิกรไทย (KBank)",
                 accNo: "111-1-11111-1",
-                accName: "นาย ตั้งหวัง เจ๊ง"
+                accName: "นาย วายุ เกิดผล และ นางสาว ณฐินี ตรีทิพย์รัตน์"
             },
-            // 👇 ใส่ลิงก์รูป QR Code จาก Google Drive ตรงนี้ (แปลงลิงก์ตามวิธีด้านบนแล้ว)
-            qrImage: "https://drive.google.com/file/d/1blYpuwXAAINvT17JF0GelkKp-m2kG8Yr/view?usp=drive_link", 
-            scriptUrl: "https://script.google.com/macros/s/xxxxxx_SHEET_1_xxxxxx/exec", 
+            qrImage: "https://drive.google.com/thumbnail?id=1DHwsXtn9WE5O3rHTjAqWIMEbbVXnc_33&sz=w800", 
+            scriptUrl: "https://script.google.com/macros/s/AKfycbz7mWZmVjWRENUpdV-p307W0dM18pab-5JvI1jsaOcvb31dfgoYG7I3uTfOECUaIBpu/exec", 
             menu: [
-                { id: 101, name: 'เอสเพรสโซ่', price: 40, image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' , category: ''},
-                { id: 102, name: 'ลาเต้เย็น', price: 50, image: 'https://images.unsplash.com/photo-1461023058943-716d192f2279?w=300' , category: ''}
+                { id: 101, name: 'หม่าล่า ไม้ละ 15 บาท', price: 15, image: '' , category: 'food'},
+                { id: 102, name: 'หม่าล่า ไม้ละ 20 บาท', price: 20, image: '' , category: 'food'},
+                { id: 103, name: 'เฉาก๊วยนมสด', price: 40, image: '' , category: 'food'},
+                { id: 104, name: 'เปาบุ้นจิ้นแผลงศร 3 ดอก', price: 20, image: '' , category: 'activity'},
+                { id: 105, name: 'เปาบุ้นจิ้นแผลงศร 5 ดอก', price: 30, image: '' , category: 'activity'},
+                { id: 106, name: 'เซียมซีเสี่ยงสิ้', price: 20, image: '' , category: 'activity'},
             ],
-            promoGroups: [] 
+            promotions: [
+                {
+                    id: 107, name: 'เซียมซี ลดเหลือ 15 บาท', price: 15, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'เซียมซีเสี่ยงสิ้', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 108, name: 'โยนธนู ลดเหลือ 15 บาท', price: 15, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'เปาบุ้นจิ้นแผลงศร 3 ดอก', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 109, name: 'โยนธนู ลดเหลือ 25 บาท', price: 25, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'เปาบุ้นจิ้นแผลงศร 5 ดอก', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 110, name: 'หม่าล่า 3 ไม้ ลด 5 บาท', price: -5, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ลด 5 บาท', category: 'food' },
+                    ]
+                },
+                {
+                    id: 111, name: 'หม่าล่า 5 ไม้ ลด 10 บาท', price: -10, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ลด 10 บาท', category: 'food' },
+                    ]
+                },
+                {
+                    id: 112, name: 'แถมฟรีไม้ 15 บาท', price: -15, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ลด 15 บาท', category: 'food' },
+                    ]
+                },
+                {
+                    id: 113, name: 'แถมฟรีไม้ 20', price: -20, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ลด 20 บาท', category: 'food' },
+                    ]
+                },
+                {
+                    id: 114, name: 'หม่าล่า + เฉาก๊วย', price: -10, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ลด 10 บาท', category: 'food' },
+                    ]
+                },
+            ] 
         },
 
         // บ้าน 2 //
@@ -334,15 +400,38 @@
             name: "Summer splash",
             bankDetails: {
                 bankName: "ธนาคารกสิกรไทย (KBank)",
-                accNo: "111-1-11111-1",
-                accName: "นาย ตั้งหวัง เจ๊ง"
+                accNo: "",
+                accName: "นาย พัฒนแสง พินิจพิชิตภุล และ นาย ศุภกร ไพศาลเจริญ"
             }, 
-            qrImage: "",
-            scriptUrl: "", 
+            qrImage: "https://drive.google.com/thumbnail?id=1Rr1YGHuzbmGHkDihLn9y2qCGBiqW5XB9&sz=w800",
+            scriptUrl: "https://script.google.com/macros/s/AKfycbwjqmrJGuNMIxZ3PkvIJwM7TB_jVHPWbz29FHebew9AsUCMd4ofLQ9-wPy4RJ7t6nI2/exec", 
             menu: [
-                { id: 201, name: 'ข้าวมันไก่ต้ม', price: 50, image: '' , category: ''}
-
-            ] 
+                { id: 201, name: 'Nacho', price: 59, image: '' , category: 'food'},
+                { id: 202, name: 'Honey lemon', price: 45, image: '' , category: 'food'},
+                { id: 203, name: 'ปาลูกดอก 3 ดอก', price: 30, image: '' , category: 'activity'},
+                { id: 204, name: 'ปาลูกดอก 7 ดอก', price: 50, image: '' , category: 'activity'},
+            ],
+            promotions: [
+                {
+                    id: 205, name: 'Nacho + Honey lemon', price: 99, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Nacho', category: 'food' },
+                        { name: 'Honey lemon', category: 'food' },
+                    ]
+                },
+                {
+                    id: 206, name: 'Nacho ลด 5 บาท', price: 54, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Nacho', category: 'food' },
+                    ]
+                },
+                {
+                    id: 207, name: 'Honey lemon ลด 5 บาท', price: 40, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Honey lemon', category: 'food' },
+                    ]
+                },
+            ]  
         },
         
         // บ้าน 3 //
@@ -350,15 +439,41 @@
             name: "Tales of Tanabata", 
             bankDetails: {
                 bankName: "ธนาคารกสิกรไทย (KBank)",
-                accNo: "111-1-11111-1",
-                accName: "นาย ตั้งหวัง เจ๊ง"
+                accNo: "",
+                accName: "นาย หริษฐ์ อรุณศิริกุล และ นางสาว นภัสสา กันตังกุล"
             },
-            qrImage: "", 
-            scriptUrl: "", 
+            qrImage: "https://drive.google.com/thumbnail?id=1e4JBbYAFmifMIE5Mytv02ALvMDG-B20L&sz=w800", 
+            scriptUrl: "https://script.google.com/macros/s/AKfycbyqZJAJxeBVLYdZ49takHQEzVcv6ofQVhftyaAymuNEl9r1iL8eP-ha7QCaDP5Bb9cj/exec", 
             menu: [
-                { id: 301, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
-
-            ] 
+                { id: 301, name: 'ข้าวหน้าหมู', price: 49, image: '' , category: 'food'},
+                { id: 302, name: 'ไข่ลวก', price: 10, image: '' , category: 'food'},
+                { id: 303, name: 'เกี๊ยวซ่าทอด', price: 49, image: '' , category: 'food'},
+                { id: 304, name: 'น้ำแข็งใส', price: 25, image: '' , category: 'food'},
+                { id: 305, name: 'Topping น้ำแข็งใส', price: 5, image: '' , category: 'food'},
+                { id: 306, name: 'Wish upon the star Tanabata', price: 20, image: '' , category: 'activity'},
+                { id: 307, name: 'Shateki', price: 30, image: '' , category: 'activity'},
+            ],
+            promotions: [
+                {
+                    id: 308, name: 'ข้าวหน้าหมู + เกี๊ยวซ่าทอด', price: 89, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ข้าวหน้าหมู', category: 'food' },
+                        { name: 'เกี๊ยวซ่าทอด', category: 'food' },
+                    ]
+                },
+                {
+                    id: 309, name: 'ฟรี topping น้ำแข็งใส', price: -5, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Topping น้ำแข็งใส', category: 'food' },
+                    ]
+                },
+                {
+                    id: 310, name: 'ส่วนลด 5 บาท', price: -5, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ส่วนลด 5 บาท', category: 'activity' },
+                    ]
+                },
+            ]
         },
 
         // บ้าน 4 //
@@ -366,15 +481,57 @@
             name: "Eggy Egg Eggg", 
             bankDetails: {
                 bankName: "ธนาคารกสิกรไทย (KBank)",
-                accNo: "111-1-11111-1",
-                accName: "นาย ตั้งหวัง เจ๊ง"
+                accNo: "",
+                accName: "นาย ก้องกิดากร สูยะนันท์ และ นางสาว ภวิภา อ่องพัฒนกุ"
             },
-            qrImage: "", 
-            scriptUrl: "", 
+            qrImage: "https://drive.google.com/thumbnail?id=1G7FnRAqmtUMjxay56MsiYgUd_JHmFzjf&sz=w800", 
+            scriptUrl: "https://script.google.com/macros/s/AKfycbzpVnSpsy-Z2qlTfa8yjFKYf4_jgBqm28eG61_GJGnJb_YfQXWzaQK6AwkL0XEYdfX4/exec", 
             menu: [
-                { id: 401, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
-
-            ] 
+                { id: 401, name: 'ไข่หมึกทอด', price: 59, image: '' , category: 'food'},
+                { id: 402, name: 'โค้กโฟล์ต', price: 39, image: '' , category: 'food'},
+                { id: 403, name: 'โค้ก/สไปรต์', price: 25, image: '' , category: 'food'},
+                { id: 404, name: 'กระตุกให้(ขวด)ตั้ง', price: 25, image: '' , category: 'activity'},
+                { id: 405, name: 'ล้วงลับจับไข่', price: 15, image: '' , category: 'activity'},
+                { id: 406, name: 'กำไลสื่อรัก ร้อยใจให้เธอ', price: 39, image: '' , category: 'activity'},
+            ],
+            promotions:[
+                {
+                    id: 407, name: 'ส่วนลด โค้กโฟล์ต 5 บาท', price: 34, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'โค้กโฟล์ต', category: 'food' },
+                    ]
+                },
+                {
+                    id: 408, name: 'ส่วนลด โค้ก 5 บาท', price: 20, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'โค้ก/สไปรต์', category: 'food' },
+                    ]
+                },
+                {
+                    id: 409, name: 'กระตุกขวด 4 แถม 1', price: 100, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'กระตุกให้(ขวด)ตั้ง', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 410, name: 'ล้วงลับจับไข่ 7 ครั้ง 100 บาท', price: 100, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ล้วงลับจับไข่', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 411, name: 'ส่วนลด workshop กำไลข้อมือ', price: 19, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'กำไลสื่อรัก ร้อยใจให้เธอ', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 412, name: 'ถ่ายคู่กับคนแปลกหน้า แลกส่วนลดไข่หมึกทอด', price: 54, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ไข่หมึกทอด', category: 'food' },
+                    ]
+                },
+            ]  
         },
 
         // บ้าน 5 //
@@ -382,14 +539,45 @@
             name: "Clause Bite", 
             bankDetails: {
                 bankName: "ธนาคารกสิกรไทย (KBank)",
-                accNo: "111-1-11111-1",
-                accName: "นาย ตั้งหวัง เจ๊ง"
+                accNo: "",
+                accName: "นาย ฉัฏฐิราช รงค์ภักดี และ นาย ชวณัฐ โซวพิทักษ์วัฒ"
             },
-            qrImage: "", 
-            scriptUrl: "", 
+            qrImage: "https://drive.google.com/thumbnail?id=1t_oZ8tMT4gUpTRNYSeY3zuqtYG4brmIL&sz=w800", 
+            scriptUrl: "https://script.google.com/macros/s/AKfycbxgHUoTHCpdVtnXbtrrBYpq08yrtTm-qgklCXd4CNI9R6Ky9rBWjYixbIxkmyEuDhmS/exec", 
             menu: [
-                { id: 501, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
-
+                { id: 501, name: 'Spaghetti tomato sauce', price: 69, image: '' , category: 'food'},
+                { id: 502, name: 'Spaghetti carbonara', price: 69, image: '' , category: 'food'},
+                { id: 503, name: 'น้ำอัดลมลมลม', price: 25, image: '' , category: 'food'},
+                { id: 504, name: 'Ovaltine', price: 40, image: '' , category: 'food'},
+                { id: 505, name: 'ไหนเขากวางขอครอบหน่อย', price: 20, image: '' , category: 'activity'},
+                { id: 506, name: 'ตัก snowball ล่าสมบัติ', price: 20, image: '' , category: 'activity'},
+            ],
+            promotions:[
+                {
+                    id: 507, name: 'ส่วนลด Spaghetti tomato sauce 5 บาท', price: 64, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Spaghetti tomato sauce', category: 'food' },
+                    ]
+                },
+                {
+                    id: 508, name: 'ส่วนลด ไหนเขากวางขอครอบหน่อย 5 บาท', price: 15, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ไหนเขากวางขอครอบหน่อย', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 509, name: 'ส่วนลด ตัก snowball ล่าสมบัติ 5 บาท', price: 15, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ตัก snowball ล่าสมบัติ', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 510, name: 'จับคู่ Spaghetti tomato sauce + น้ำอัดลม', price: 85, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Spaghetti tomato sauce', category: 'food' },
+                        { name: 'น้ำอัดลมลมลม', category: 'food' },
+                    ]
+                },
             ] 
         },
 
@@ -398,15 +586,45 @@
             name: "Oktoberfest", 
             bankDetails: {
                 bankName: "ธนาคารกสิกรไทย (KBank)",
-                accNo: "111-1-11111-1",
-                accName: "นาย ตั้งหวัง เจ๊ง"
+                accNo: "",
+                accName: "นางสาว เฟมีดา กัลยา และ นางสาว กัฐ วงศ์สุวรรณ"
             }, 
-            qrImage: "",
-            scriptUrl: "", 
+            qrImage: "https://drive.google.com/thumbnail?id=1BI87tFvuvCDc0lTvyuzx7_b2LPYkmTma&sz=w800",
+            scriptUrl: "https://script.google.com/macros/s/AKfycbw7R071-Xt7Kc8mAXxBTbAnwKkYPFiIU6ur4L-s90HYfZ39MeOvNio-3k8gQ8JAoxLv/exec", 
             menu: [
-                { id: 601, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
-
-            ] 
+                { id: 601, name: 'Currywurst', price: 49, image: '' , category: 'food'},
+                { id: 602, name: 'Currywurst แค่ไส้กรอก', price: 25, image: '' , category: 'food'},
+                { id: 603, name: 'Currywurst แค่เฟรนช์ฟรายส์', price: 25, image: '' , category: 'food'},
+                { id: 604, name: 'Currywurst + เขย่าผง', price: 54, image: '' , category: 'food'},
+                { id: 605, name: 'Mashed potatoes', price: 29, image: '' , category: 'food'},
+                { id: 606, name: 'Butterbeer', price: 39, image: '' , category: 'food'},
+                { id: 607, name: 'Butterbeer + วิปครีม', price: 49, image: '' , category: 'food'},
+                { id: 608, name: 'Rootbeer', price: 20, image: '' , category: 'food'},
+                { id: 609, name: 'Polaroid', price: 69, image: '' , category: 'activity'},
+                { id: 610, name: 'Polaroid รูปต่อไป', price: 60, image: '' , category: 'activity'},
+                { id: 611, name: 'จำให้ได้ หาให้ทัน', price: 25, image: '' , category: 'activity'},
+                { id: 612, name: 'จำให้ได้ หาให้ทัน 3 คน', price: 69, image: '' , category: 'activity'},
+            ], 
+            promotions:[
+                {
+                    id: 613, name: 'Butterbeer ลด 5 บาท', price: 34, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Butterbeer', category: 'food' },
+                    ]
+                },
+                {
+                    id: 614, name: 'Butterbeer + วิปครีม ลด 5 บาท', price: 44, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Butterbeer + วิปครีม', category: 'food' },
+                    ]
+                },
+                {
+                    id: 615, name: 'Polaroid ลด 5 บาท', price: -5, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ลด 5 บาท', category: 'activity' },
+                    ]
+                },
+            ]
         },
 
         // บ้าน 7 //
@@ -414,14 +632,33 @@
             name: "La tominata festival", 
             bankDetails: {
                 bankName: "ธนาคารกสิกรไทย (KBank)",
-                accNo: "111-1-11111-1",
-                accName: "นาย ตั้งหวัง เจ๊ง"
+                accNo: "",
+                accName: "นางสาว ศิริอานันท์ บุญประสิทธิพันธ์ และ นาย นิติกร กล"
             }, 
-            qrImage: "",
-            scriptUrl: "https://script.google.com/macros/s/AKfycbzpqHJ2My5P6hoh6NQMWDJt7MQAuLWLrPyxKLi9xonOpchL2ZBJ7IbSYhq0r-m7xst7/exec", 
+            qrImage: "https://drive.google.com/thumbnail?id=1pAbzoYry9Bqa8VoIT9S6nPwfrH02B8Av&sz=w800",
+            scriptUrl: "https://script.google.com/macros/s/AKfycbxvEHsF362SStIN9E_lVuLUwiMNXZlS62vO6yWuRpxTk4m9nAtY-SkAMoSJlW6qmPsF/exec", 
             menu: [
-                { id: 701, name: 'เอสเพรสโซ่', price: 40, image: '' , category: ''}
-
+                { id: 701, name: 'เฟรนช์ฟรายส์หลายใจ', price: 39, image: '' , category: 'food'},
+                { id: 702, name: 'สตอเบอรี่โยเกิร์ตระเบิดความมัน', price: 35, image: '' , category: 'food'},
+                { id: 703, name: 'ไก่ป๊อปฮ็อปเหยิน', price: 39, image: '' , category: 'food'},
+                { id: 704, name: 'เกมปามะเขือเทศ', price: 50, image: '' , category: 'activity'},
+                { id: 705, name: 'เตะบอลโบว์ลิ่ง', price: 50, image: '' , category: 'activity'},
+            ],
+            promotions:[
+                {
+                    id: 706, name: 'เฟรนส์ฟรายหลายใจ + ไก่ป๊อปฮ็อปเหยิน', price: 70, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'เฟรนส์ฟรายหลายใจ', category: 'food' },
+                        { name: 'ไก่ป๊อปฮ็อปเหยิน', category: 'food' }
+                    ]
+                },
+                {
+                    id: 707, name: '2 เกม 60', price: 60, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'เกมปามะเขือเทศ', category: 'activity' },
+                        { name: 'เตะบอลโบว์ลิ่ง', category: 'activity' }
+                    ]
+                },
             ] 
         },
 
@@ -432,12 +669,46 @@
                 accNo: "223-8-96121-4",
                 accName: "นางสาวธมลวรรณ ทองย้อย และ นายอภิวิชญ์ เจริญรัตน์"
             },
-            qrImage: "https://drive.google.com/thumbnail?id=1kdDcRFEdxd5xL6cKywwZpJoxyE_LBXal&sz=w800",
+            qrImage: "https://drive.google.com/thumbnail?id=1JNbNgdmki9NQyWHPl3iRGffpL0cPhf6K&sz=w800",
             scriptUrl: "https://script.google.com/macros/s/AKfycbxIYa_4WE1kkbNTtR_bNcBiv9ma6tpkD4pQUsQheZzACfBx6qVnkxCIgYhPTqh0Eyn-XA/exec",
             menu: [
-                { id: 801, name: 'หมี่ไก่ฉีก', price: 59, image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=300', category: 'food' },
-                { id: 802, name: 'ชาอัสสัม', price: 39, image: 'https://images.unsplash.com/photo-1603133872878-684f571d70f2?w=300', category: 'food' },
-                { id: 804, name: 'Photobooth', price: 67, image: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=300', category: 'activity' }
+                { id: 801, name: 'หมี่ไก่ฉีก', price: 59, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800', category: 'food' },
+                { id: 802, name: 'ชาอัสสัม', price: 39, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800', category: 'food' },
+                { id: 803, name: 'ขนมปังแยมสตอเบอรี่', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'food'},
+                { id: 804, name: 'ขนมปังแยมสังขยาใบเตย', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'food'},
+                { id: 805, name: 'ขนมปังแยมช็อกโกแลต', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'food'},
+                { id: 806, name: 'เพิ่มอัลมอนสไลด์', price: 5, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'food'},
+                { id: 807, name: 'เพิ่มคอนเฟลก', price: 5, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'food'},
+                { id: 808, name: 'ขนมปังหมูหยองพริกเผา', price: 20, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'food'},
+                { id: 809, name: 'ขนมปังหมูหยองน้ำสลัดโบราณ', price: 20, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'food'},
+                { id: 810, name: 'Holi glow tattoo bar', price: 5, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'activity'},
+                { id: 811, name: 'Holi glow tattoo bar', price: 10, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'activity'},
+                { id: 812, name: 'Holi glow tattoo bar', price: 15, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'activity'},
+                { id: 813, name: 'Photobooth', price: 69, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800', category: 'activity' },
+                { id: 814, name: 'มหาราชาอั๊สสั่งลุย999', price: 20, image: 'https://drive.google.com/thumbnail?id=1Gwa3d_fVroXdpS65zjR5YoCPSQDBA2CA&sz=w800' , category: 'activity'}
+            ],
+            promotions:[
+                {
+                    id: 815, name: 'ชาอัสสัม + หมี่ไก่ฉีก', price: 89, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'หมี่ไก่ฉีก', category: 'food' },
+                        { name: 'ชาอัสสัม', category: 'food' }
+                    ]
+                },
+                {
+                    id: 816, name: 'มหาราชาอัสสั่งลุย 999', price: 20, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'มหาราชาอั๊สสั่งลุย999', category: 'activity' },
+                        { name: 'มหาราชาอั๊สสั่งลุย999', category: 'activity' }
+                    ]
+                },
+                {
+                    id: 817, name: 'Tattoo + Photobooth', price: 67, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Photobooth', category: 'activity' },
+                        { name: 'Holi glow tattoo bar', category: 'activity' }
+                    ]
+                },
             ]
         }
     };
@@ -458,6 +729,7 @@
                 currentTab: 'pos', 
                 loginForm: { username: '', password: '' },
                 currentUser: null, currentMenu: [], currentScriptUrl: '', configName: '',
+                currentPromotions: [], currentMenu: [],
                 currentBankDetails: { bankName: '', accNo: '', accName: '' }, currentqrImage: '',
                 loginError: '', cart: [], currentQueue: 1, customerName: '',
                 paymentModal: null, editModal: null, isLoading: false,
@@ -482,6 +754,7 @@
                     const config = houseConfigs[user.houseId];
                     if (config) {
                         this.currentUser = user; this.currentMenu = config.menu;
+                        this.currentPromotions = config.promotions || [];
                         this.currentScriptUrl = config.scriptUrl; this.configName = config.name;
                         this.currentBankDetails = config.bankDetails || { bankName: '-', accNo: '-', accName: '-' };
                         this.currentQrImage = config.qrImage || '';
@@ -490,7 +763,9 @@
                     }
                 } else this.loginError = 'ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด';
             },
-            logout() { this.currentUser = null; this.cart = []; },
+            logout() { this.currentUser = null; this.cart = []; 
+                this.currentPromotions = [];
+            },
             addToCart(item) {
                 const found = this.cart.find(i => i.id === item.id);
                 if (found) found.qty++; else this.cart.push({ ...item, qty: 1 });
@@ -532,13 +807,47 @@
 
             confirmPayment() {
                 this.paymentModal.hide(); this.isLoading = true;
-                const payload = {
-                    action: 'insert',
-                    queueNumber: this.currentQueue,
-                    customerName: this.customerName || "-", 
-                    items: this.cart,
-                    total: this.totalPrice
-                };
+                // ---------------- ส่วนที่แก้ไขใหม่ ----------------
+                let expandedItems = [];
+                    
+                this.cart.forEach(item => {
+                        if (item.isPromo) {
+                            // เช็คก่อนว่าใส่ข้อมูล includes มาไหม (ป้องกันโค้ดพัง)
+                            if (item.includes && Array.isArray(item.includes)) {
+                                // ถ้าเป็นโปร ให้แตกไอเทมย่อยออกส่งไปเลย ไม่ต้องส่งตัวโปรหลักไปแล้ว (เพราะยอดเงิน total เราส่งแยกไปอยู่แล้ว)
+                                item.includes.forEach(subItem => {
+                                    expandedItems.push({
+                                        name: `${subItem.name} (จากโปร ${item.name})`, // ห้อยท้ายไว้ พนักงานจะได้ไม่งง
+                                        category: subItem.category || 'food', // ดักไว้ถ้าลืมใส่ ให้เป็น food
+                                        qty: item.qty // ดึงจำนวนตามที่ลูกค้ากด
+                                    });
+                                });
+                            } else {
+                                // เผื่อคุณลืมตั้งค่า includes โค้ดจะได้ไม่พัง ก็ส่งชื่อโปรไปตรงๆ เลย
+                                expandedItems.push({
+                                    name: item.name,
+                                    category: 'food',
+                                    qty: item.qty
+                                });
+                            }
+                        } else {
+                            // ถ้ารายการปกติ ก็ส่งปกติ
+                            expandedItems.push({
+                                name: item.name,
+                                category: item.category,
+                                qty: item.qty
+                            });
+                        }
+                    });
+                    // ------------------------------------------------------------------
+
+                    const payload = {
+                        action: 'insert',
+                        queueNumber: this.currentQueue,
+                        customerName: this.customerName || "-", 
+                        items: expandedItems, // ส่งก้อนใหม่ที่เราจัดรูปแล้วไป
+                        total: this.totalPrice // อันนี้คือยอดรวมที่ถูกต้องอยู่แล้ว ส่งไปตรงๆ เลย
+                    };
 
                 fetch(this.currentScriptUrl, {
                     method: 'POST',
