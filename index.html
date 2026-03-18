@@ -549,26 +549,12 @@
                 { id: 502, name: 'Spaghetti carbonara', price: 69, image: '' , category: 'food'},
                 { id: 503, name: 'น้ำอัดลมลมลม', price: 25, image: '' , category: 'food'},
                 { id: 504, name: 'Ovaltine', price: 40, image: '' , category: 'food'},
-                { id: 505, name: 'ไหนเขากวางขอครอบหน่อย', price: 20, image: '' , category: 'activity'},
-                { id: 506, name: 'ตัก snowball ล่าสมบัติ', price: 20, image: '' , category: 'activity'},
             ],
             promotions:[
                 {
                     id: 507, name: 'ส่วนลด Spaghetti tomato sauce 5 บาท', price: 64, image: '', isPromo: true, 
                     includes: [
                         { name: 'Spaghetti tomato sauce', category: 'food' },
-                    ]
-                },
-                {
-                    id: 508, name: 'ส่วนลด ไหนเขากวางขอครอบหน่อย 5 บาท', price: 15, image: '', isPromo: true, 
-                    includes: [
-                        { name: 'ไหนเขากวางขอครอบหน่อย', category: 'activity' },
-                    ]
-                },
-                {
-                    id: 509, name: 'ส่วนลด ตัก snowball ล่าสมบัติ 5 บาท', price: 15, image: '', isPromo: true, 
-                    includes: [
-                        { name: 'ตัก snowball ล่าสมบัติ', category: 'activity' },
                     ]
                 },
                 {
@@ -710,17 +696,47 @@
                     ]
                 },
             ]
-        }
+        },
+        "9": { 
+            name: "Clause Bite activity", 
+            bankDetails: {
+                bankName: "ธนาคารกสิกรไทย (KBank)",
+                accNo: "",
+                accName: "นาย ฉัฏฐิราช รงค์ภักดี และ นาย ชวณัฐ โซวพิทักษ์วัฒ"
+            },
+            qrImage: "https://drive.google.com/thumbnail?id=1t_oZ8tMT4gUpTRNYSeY3zuqtYG4brmIL&sz=w800", 
+            scriptUrl: "https://script.google.com/macros/s/AKfycbyOnOgVERpjsCD6Wyql89wQR9TSpobrPSxvRu-VmycNzXChFXxPC2yatmsFRpMfDCsO/exec", 
+            menu: [
+                { id: 901, name: 'ไหนเขากวางขอครอบหน่อย', price: 20, image: '' , category: 'activity'},
+                { id: 902, name: 'ตัก snowball ล่าสมบัติ', price: 20, image: '' , category: 'activity'},
+            ],
+            promotions:[
+                {
+                    id: 903, name: 'โปร ไหนเขากวางขอครอบหน่อย ลด 5 บาท', price: 15, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ไหนเขากวางขอครอบหน่อย', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 904, name: 'โปร ตัก snowball ล่าสมบัติ ลด 5 บาท', price: 15, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'ตัก snowball ล่าสมบัติ', category: 'activity' },
+                    ]
+                },
+            ] 
+        },
+
     };
     const usersDB = [
         { username: 'baan1', password: 'hailnight', houseId: '1' },
         { username: 'baan2', password: 'hailnight', houseId: '2' },
         { username: 'baan3', password: 'hailnight', houseId: '3' },
         { username: 'baan4', password: 'hailnight', houseId: '4' },
-        { username: 'baan5', password: 'hailnight', houseId: '5' },
+        { username: 'baan5_food', password: 'hailnight', houseId: '5' },
         { username: 'baan6', password: 'hailnight', houseId: '6' },
         { username: 'baan7', password: 'hailnight', houseId: '7' },
-        { username: 'baan8', password: 'hailnight', houseId: '8' }
+        { username: 'baan8', password: 'hailnight', houseId: '8' },
+        { username: 'baan5_activity', password: 'hailnight', houseId: '9' },
     ];
 
     createApp({
