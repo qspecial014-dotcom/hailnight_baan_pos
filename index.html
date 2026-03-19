@@ -725,6 +725,78 @@
                 },
             ] 
         },
+        "10": { 
+            name: "Main house", 
+            bankDetails: {
+                bankName: "ธนาคารกสิกรไทย (KBank)",
+                accNo: "",
+                accName: ""
+            },
+            qrImage: "", 
+            scriptUrl: "https://script.google.com/macros/s/AKfycbx8bGrHhRSQLSUg7WC8-Gf7goSwRs_4--tWJNW4EXMfcG3Akj2IFULtluvbymAKRpwd/exec", 
+            menu: [
+                { id: 1001, name: 'Jersey 1 ตัว', price: 379, image: '' , category: 'activity'},
+                { id: 1002, name: 'Hoodie 1 ตัว', price: 690, image: '' , category: 'activity'},
+                { id: 1003, name: 'Tote bag', price: 299, image: '' , category: 'activity'},
+                { id: 1004, name: 'T-shirt', price: 259, image: '' , category: 'activity'},
+            ],
+            promotions:[
+                {
+                    id: 1005, name: 'Jersey 2 ตัว', price: 369, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Jersey', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 1006, name: 'Jersey 3 ตัว', price: 359, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Jersey', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 1007, name: 'Jersey 4-9 ตัว', price: 349, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Jersey', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 1008, name: 'Jersey 10+ ตัว', price: 339, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Jersey', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 1009, name: 'Hoodie 2 ตัว', price: 680, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Hoodie', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 1010, name: 'Hoodie 3 ตัว', price: 670, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Hoodie', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 1011, name: 'Hoodie 4-9 ตัว', price: 650, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Hoodie', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 1012, name: 'โปร Tote bag', price: 199, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'Tote bag', category: 'activity' },
+                    ]
+                },
+                {
+                    id: 1013, name: 'โปร T-shirt', price: 219, image: '', isPromo: true, 
+                    includes: [
+                        { name: 'T-shirt', category: 'activity' },
+                    ]
+                },
+            ] 
+        },
 
     };
     const usersDB = [
@@ -737,6 +809,7 @@
         { username: 'baan7', password: 'hailnight', houseId: '7' },
         { username: 'baan8', password: 'hailnight', houseId: '8' },
         { username: 'baan5_activity', password: 'hailnight', houseId: '9' },
+        { username: 'mainhouse', password: 'hailnight', houseId: '10' },
     ];
 
     createApp({
